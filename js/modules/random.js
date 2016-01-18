@@ -1,3 +1,10 @@
+/**
+ * Returns a random number between the given min and max values.
+ *
+ * @param   {number} min - Minimum number
+ * @param   {number} max - Maximum number
+ * @returns {number} Returns a random number
+ */
 function getSimpleRandom(min, max) {
     if (min > max) { return -1; }
     if (min == max) { return min; }
