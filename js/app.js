@@ -23,17 +23,35 @@ $(document).ready(function() {
     // -----------------------------------------------------------------------------------------------------------------
     // Helpers
 
+    /**
+     * Deselect the selected tile.
+     */
     function resetSelectedTile() {
         selectedTile = { x: null, y: null };
+        $DOM_World.find('.selected').removeClass('selected');
     }
 
-    function isEqualTile(selectedTile, tile) {
-        var tx = tile.x, ty = tile.y,
-            sx = selectedTile.x, sy = selectedTile.y;
+    /**
+     * Returns if the given tiles are the same or not
+     *
+     * @param   {object} firstTile
+     * @param   {object} secondTile
+     * @returns {boolean}
+     */
+    function isEqualTile(firstTile, secondTile) {
+        var fx = firstTile.x,  fy = firstTile.y,
+            sx = secondTile.x, sy = secondTile.y;
 
-        return sx == tx && sy== ty
+        return fx == sx && fy == sy;
     }
 
+
+    /**
+     * Returns if the given tile is a selected one.
+     *
+     * @param   {object} tile
+     * @returns {boolean} Returns true if the given tile is the same as the selected one
+     */
     function isSelectedTile(tile) {
         var x = tile.x, y = tile.y;
 
@@ -43,18 +61,12 @@ $(document).ready(function() {
     // -----------------------------------------------------------------------------------------------------------------
     // Initial rendering
 
-    // Render world map
+    // Set and render world map
     $DOM_World.html(world.newWorld(worldMap));
-
-    // Add all players
 
     // Set and render player and their bases
     $('#x-' + bases[0].x + '-y-' + bases[0].y).html(player.newPlayer(bases[0]));
     $('#x-' + bases[1].x + '-y-' + bases[1].y).html(player.newPlayer(bases[1]));
-
-
-    //$('#x-2-y-5').html(base(baseTileP1,1));
-    //$('#x-5-y-1').html(base(baseTileP2,2));
 
     // -----------------------------------------------------------------------------------------------------------------
     // Game logic - conditions
@@ -69,9 +81,6 @@ $(document).ready(function() {
 
         // Stores the currently clicked tile as jQueryScope
         $tile = $('#x-' + x + '-y-' + y);
-
-        // Deselect common selection
-        $(this).find('.selected').removeClass('selected');
 
         // Select tile for the first time
         if (isSelectedTile(selectedTile)) {
