@@ -1,9 +1,16 @@
 $(document).ready(function() {
     'use strict';
-
-    var player       = new Player();
-    var world        = new World();
-    var $world       = $('#world');          // Stores the jQueryScope of the world map
+    var worldMap     = [
+        [0, 0, 0, 0, 0, 0, 0],
+        [0, 1, 1, 1, 0, 1, 0],
+        [0, 3, 2, 1, 1, 1, 0],
+        [0, 3, 2, 4, 2, 3, 0],
+        [0, 1, 1, 1, 2, 3, 0],
+        [0, 0, 1, 1, 4, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0]];                // List of IDs used for creating a worldMap
+    var player       = new Player();         // Instance for player functionality
+    var world        = new World();          // Instance for world functionality
+    var $DOM_World   = $('#world');          // Stores the jQueryScope of the world map
     var $tile        = null;                 // Stores the jQueryScope of the currently clicked tile
     var $tileSelect  = null;                 // Stores the jQueryScope of the selected tile
     var tile         = { x: null, y: null }; // Stores the coordinates of the currently clicked tile
@@ -37,7 +44,7 @@ $(document).ready(function() {
     // Initial rendering
 
     // Render world map
-    $world.html(world.getWorld());
+    $DOM_World.html(world.newWorld(worldMap));
 
     // Add all players
 
@@ -53,7 +60,7 @@ $(document).ready(function() {
     // Game logic - conditions
 
     // On click of any tile
-    $world.on('click.tileClick', '.tile', function(e) {
+    $DOM_World.on('click.tileClick', '.tile', function() {
         var x    = this.id.split('-')[1],
             y    = this.id.split('-')[3];
 
@@ -64,7 +71,7 @@ $(document).ready(function() {
         $tile = $('#x-' + x + '-y-' + y);
 
         // Deselect common selection
-        $world.find('.selected').removeClass('selected');
+        $(this).find('.selected').removeClass('selected');
 
         // Select tile for the first time
         if (isSelectedTile(selectedTile)) {
