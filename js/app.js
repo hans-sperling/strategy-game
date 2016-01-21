@@ -1,17 +1,17 @@
 $(document).ready(function() {
     'use strict';
 
+    var player       = new Player();
+    var world        = new World();
     var $world       = $('#world');          // Stores the jQueryScope of the world map
     var $tile        = null;                 // Stores the jQueryScope of the currently clicked tile
     var $tileSelect  = null;                 // Stores the jQueryScope of the selected tile
     var tile         = { x: null, y: null }; // Stores the coordinates of the currently clicked tile
     var selectedTile = { x: null, y: null }; // Stores the coordinates of the selected tile
-    var baseTileP1   = { x: 2,    y: 5 };    // Stores the coordinates of the base of player1
-    var baseTileP2   = { x: 5,    y: 1 };    // Stores the coordinates of the base of player2
     var bases        = [
         { x: 2, y: 5 },
         { x: 5, y: 1 }
-    ];
+    ];                // Stores the coordinates of the base of all players
 
     // -----------------------------------------------------------------------------------------------------------------
     // Helpers
@@ -37,10 +37,9 @@ $(document).ready(function() {
     // Initial rendering
 
     // Render world map
-    $world.html(getMap());
+    $world.html(world.getWorld());
 
     // Add all players
-    var player = new Player();
 
     // Set and render player and their bases
     $('#x-' + bases[0].x + '-y-' + bases[0].y).html(player.newPlayer(bases[0]));
@@ -92,7 +91,7 @@ $(document).ready(function() {
                 else {}
             }
             // move selected unit to a free world tile
-            else if (isFreeWordTile(tile) && !player.isOccupiedTile(tile)) {
+            else if (world.isFreeWorldTile(tile) && !player.isOccupiedTile(tile)) {
                 player.moveUnit(selectedTile, tile);
 
                 $tile.html($tileSelect.html());
@@ -120,7 +119,7 @@ $(document).ready(function() {
         }
         else {
             // Set unit first time or select chosen tile
-            if (isFreeWordTile(tile) && !player.isOccupiedTile(tile)) {
+            if (world.isFreeWorldTile(tile) && !player.isOccupiedTile(tile)) {
                 $tile.html(player.newUnit(tile, 1));
 
                 resetSelectedTile();
