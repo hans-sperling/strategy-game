@@ -8,6 +8,10 @@ $(document).ready(function() {
     var selectedTile = { x: null, y: null }; // Stores the coordinates of the selected tile
     var baseTileP1   = { x: 2,    y: 5 };    // Stores the coordinates of the base of player1
     var baseTileP2   = { x: 5,    y: 1 };    // Stores the coordinates of the base of player2
+    var bases        = [
+        { x: 2, y: 5 },
+        { x: 5, y: 1 }
+    ];
 
     // -----------------------------------------------------------------------------------------------------------------
     // Helpers
@@ -35,9 +39,16 @@ $(document).ready(function() {
     // Render world map
     $world.html(getMap());
 
-    // Set and render player bases
-    $('#x-2-y-5').html(base(baseTileP1,1));
-    $('#x-5-y-1').html(base(baseTileP2,2));
+    // Add all players
+    var player = new Player();
+
+    // Set and render player and their bases
+    $('#x-' + bases[0].x + '-y-' + bases[0].y).html(player.newPlayer(bases[0]));
+    $('#x-' + bases[1].x + '-y-' + bases[1].y).html(player.newPlayer(bases[1]));
+
+
+    //$('#x-2-y-5').html(base(baseTileP1,1));
+    //$('#x-5-y-1').html(base(baseTileP2,2));
 
     // -----------------------------------------------------------------------------------------------------------------
     // Game logic - conditions
@@ -62,43 +73,46 @@ $(document).ready(function() {
             $tileSelect = $('#x-' + selectedTile.x + '-y-' + selectedTile.y);
 
             // Upgrade or merge units
-            if (isOwnTile(tile)) {
+            if (player.isOwnTile(tile)) {
                 // Upgrade selected unit
                 if (isEqualTile(selectedTile, tile)) {
-                    var result = upgradeUnit(tile);
+                    var result = player.upgradeUnit(tile);
 
                     if (result) {
                         $tile.html(result);
+                        player.nextPlayer();
+                    }
+                    else {
+                        console.log('Upgrade of this unit is not valid! Please try another.');
                     }
 
                     resetSelectedTile();
-                    nextPlayer();
                 }
                 else if (0){} // todo - Merge units logic
                 else {}
             }
             // move selected unit to a free world tile
-            else if (isFreeWordTile(tile) && !isOccupiedTile(tile)) {
-                moveUnit(selectedTile, tile);
+            else if (isFreeWordTile(tile) && !player.isOccupiedTile(tile)) {
+                player.moveUnit(selectedTile, tile);
 
                 $tile.html($tileSelect.html());
                 $tileSelect.html('');
 
                 resetSelectedTile();
-                nextPlayer();
+                player.nextPlayer();
             }
             // fight against an enemy
-            else if (isEnemyTile(tile)) {
+            else if (player.isEnemyTile(tile)) {
                 // Player has won
-                if (attack(selectedTile, tile)) {
-                    $tile.html(downgradeUnit(tile));
+                if (player.attack(selectedTile, tile)) {
+                    $tile.html(player.downgradeUnit(tile));
                 }
                 else { // Enemy has won
-                    $tileSelect.html(downgradeUnit(selectedTile));
+                    $tileSelect.html(player.downgradeUnit(selectedTile));
                 }
 
                 resetSelectedTile();
-                nextPlayer();
+                player.nextPlayer();
             }
             else { // deselect
                 resetSelectedTile();
@@ -106,13 +120,13 @@ $(document).ready(function() {
         }
         else {
             // Set unit first time or select chosen tile
-            if (isFreeWordTile(tile) && !isOccupiedTile(tile)) {
-                $tile.html(unit(tile, 1));
+            if (isFreeWordTile(tile) && !player.isOccupiedTile(tile)) {
+                $tile.html(player.newUnit(tile, 1));
 
                 resetSelectedTile();
-                nextPlayer();
+                player.nextPlayer();
             }
-            else if (isOwnTile(tile)) { // If the chosen tile is set by the current player itself
+            else if (player.isOwnTile(tile)) { // If the chosen tile is set by the current player itself
                 selectedTile.x = x;
                 selectedTile.y = y;
                 $tile.addClass('selected');
