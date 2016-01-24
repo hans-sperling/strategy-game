@@ -23,6 +23,15 @@ $(document).ready(function() {
     // -----------------------------------------------------------------------------------------------------------------
     // Helpers
 
+
+    function setSelectedTile(x, y) {
+        selectedTile.x = x;
+        selectedTile.y = y;
+
+        $tile.addClass('selected');
+    }
+
+
     /**
      * Deselect the selected tile.
      */
@@ -89,16 +98,15 @@ $(document).ready(function() {
 
             // Upgrade or merge units
             if (player.isOwnTile(tile)) {
+
                 // Upgrade selected unit
                 if (isEqualTile(selectedTile, tile)) {
-                    var result = player.upgradeUnit(tile);
-
-                    if (result) {
-                        $tile.html(result);
+                    try {
+                        $tile.html(player.upgradeUnit(tile));
                         player.nextPlayer();
                     }
-                    else {
-                        console.log('Upgrade of this unit is not valid! Please try another.');
+                    catch (e) {
+                        console.log('You can not upgrade! - ' + e.message);
                     }
 
                     resetSelectedTile();
@@ -108,26 +116,38 @@ $(document).ready(function() {
             }
             // move selected unit to a free world tile
             else if (world.isFreeWorldTile(tile) && !player.isOccupiedTile(tile)) {
-                player.moveUnit(selectedTile, tile);
 
-                $tile.html($tileSelect.html());
-                $tileSelect.html('');
+                try {
+                    player.moveUnit(selectedTile, tile);
+                    $tile.html($tileSelect.html());
+                    $tileSelect.html('');
+                    player.nextPlayer();
+                }
+                catch (e) {
+                    console.log('You can not move! - ' + e.message);
+                }
 
                 resetSelectedTile();
-                player.nextPlayer();
             }
             // fight against an enemy
             else if (player.isEnemyTile(tile)) {
-                // Player has won
-                if (player.attack(selectedTile, tile)) {
-                    $tile.html(player.downgradeUnit(tile));
+                try {
+                    // Player has won
+                    if (player.attack(selectedTile, tile)) {
+                        $tile.html(player.downgradeUnit(tile));
+                    }
+                    else { // Enemy has won
+                        console.log('Enemy has won');
+                        $tileSelect.html(player.downgradeUnit(selectedTile, false));
+                    }
+
+                    player.nextPlayer();
                 }
-                else { // Enemy has won
-                    $tileSelect.html(player.downgradeUnit(selectedTile));
+                catch (e) {
+                    console.log('You can not attack! - ' + e.message);
                 }
 
                 resetSelectedTile();
-                player.nextPlayer();
             }
             else { // deselect
                 resetSelectedTile();
@@ -136,18 +156,21 @@ $(document).ready(function() {
         else {
             // Set unit first time or select chosen tile
             if (world.isFreeWorldTile(tile) && !player.isOccupiedTile(tile)) {
-                $tile.html(player.newUnit(tile, 1));
+                try {
+                    $tile.html(player.newUnit(tile, 1));
 
-                resetSelectedTile();
-                player.nextPlayer();
+                    player.nextPlayer();
+                }
+                catch(e) {
+                    console.log('You can not set a new unit here! - ' + e.message);
+                }
+                resetSelectedTile(); // No necessary here
             }
             else if (player.isOwnTile(tile)) { // If the chosen tile is set by the current player itself
-                selectedTile.x = x;
-                selectedTile.y = y;
-                $tile.addClass('selected');
+                setSelectedTile(x, y);
             }
             else {
-                resetSelectedTile();
+                resetSelectedTile(); // No necessary here
             }
         }
     });
