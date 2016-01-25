@@ -1,33 +1,35 @@
 // ---------------------------------------------------------------------------------------------------------------------
 
 function Player() {
-    var player = [
+    var player        = [
         [null, null, null, null, null, null, null],
         [null, null, null, null, null, null, null],
         [null, null, null, null, null, null, null],
         [null, null, null, null, null, null, null],
         [null, null, null, null, null, null, null],
         [null, null, null, null, null, null, null],
-        [null, null, null, null, null, null, null]];    // List of the current player-unit positions
-    var errorCodes = {
+        [null, null, null, null, null, null, null]]; // List of the current player-unit positions
+    var errorCodes    = {
         upgradeMaxLevelReached : { id : 0, message : 'Maximum upgrade level reached.' },
         isNotOwnTile           : { id : 1, message : 'Not your own tile.' },
         notValidTile           : { id : 2, message : 'Not a valid tile.' },
         noNeighbourTile        : { id : 3, message : 'Not a neighbour tile.' },
         noEnemyTile            : { id : 4, message : 'Not an enemy tile.'}
-    };
-    var maxPlayer     = 0; // Amount of maximum players of this game
-    var maxUnit       = 4; // Amount of maximum upgrading unit size of any player
-    var currentPlayer = 1; // Id of the current player / starting player
+    }; // List of error objects with messages
+    var maxPlayer     = 0;     // Amount of maximum players of this game
+    var maxUnit       = 4;     // Amount of maximum upgrading unit size of any player
+    var currentPlayer = 1;     // Id of the current player / starting player
 
 
     // -----------------------------------------------------------------------------------------------------------------
 
 
     /**
-     * ErrorExceptionHelper
+     * Error exception helper
      *
      * @param {object} error
+     * @property {number} id      - Id of the error
+     * @property {string} message - Message of the error
      */
     function ErrorException (error) {
         this.id      = error.id;
@@ -35,71 +37,46 @@ function Player() {
     }
 
 
-    function validateTile (tile) {
-        if (typeof(tile) === 'object') {
-            return {
-                x : Number(tile.x),
-                y : Number(tile.y)
-            };
-        }
-        else {
-            return {
-                x : null,
-                y : null
-            };
-        }
-    }
-
-
     // -----------------------------------------------------------------------------------------------------------------
 
 
     /**
-     *
+     * Returns if the given tile is set by the current player.
      *
      * @param   {object}  tile
      * @returns {boolean} Returns true if the tile is owned by the current player itself
      */
     this.isOwnTile = function isOwnTile(tile) {
-        var x, y;
-
-        tile = validateTile(tile);
-        x    = tile.x;
-        y    = tile.y;
+        var x = tile.x,
+            y = tile.y;
 
         return !!(player[y][x] !== null && player[y][x].player == currentPlayer);
     };
 
 
     /**
-     *
+     * Returns if the given tile is set by any other player as the current player.
      *
      * @param   {object}  tile
      * @returns {boolean} Returns true if there is an enemy on the selected tile
      */
     this.isEnemyTile = function isEnemyTile(tile) {
-        var x, y;
-
-        tile = validateTile(tile);
-        x    = tile.x;
-        y    = tile.y;
+        var x = tile.x,
+            y = tile.y;
 
         return !!(player[y][x] !== null && !this.isOwnTile(tile));
     };
 
 
     /**
-     *
+     * Returns if the given tile is set by any player.
      *
      * @param   {object}  tile
      * @returns {boolean} Returns true if tile is not set
      */
     this.isOccupiedTile = function isOccupiedTile(tile) {
-        var x, y;
-
-        tile = validateTile(tile);
-        x    = tile.x;
-        y    = tile.y;
+        var x = tile.x,
+            y = tile.y;
 
         return player[y][x] !== null;
     };
@@ -112,11 +89,8 @@ function Player() {
      * @returns {boolean} Returns true if tile is direct next from a tile of the current user
      */
     this.isNeighbourTile = function isNeighbourTile(tile) {
-        var x, y;
-
-        tile = validateTile(tile);
-        x    = tile.x;
-        y    = tile.y;
+        var x = tile.x,
+            y = tile.y;
 
         return !!(
             (player[y - 1][x] !== null && player[y - 1][x].player == currentPlayer) ||
@@ -133,17 +107,19 @@ function Player() {
     /**
      * Sets a new player and a base at a given tile and returns the valid markup of the tile.
      *
-     * @param   {object} baseTile Tile the base has to set to
-     * @returns {string} Returns a valid markup string for the tile
+     * @param   {object} tile - Tile is the position of the players base
+     * @returns {object} Returns all properties of a new single player wrapped as object
      */
-    this.newPlayer = function newPlayer(baseTile) {
-        var x = baseTile.x,
-            y = baseTile.y;
+    this.newPlayer = function newPlayer(tile) {
+        var x = tile.x,
+            y = tile.y;
 
         maxPlayer++;
         player[y][x] = { player: maxPlayer, unit: 0 };
 
-        return '<div class="player p' + maxPlayer + ' base"></div>';
+        return {
+            id : maxPlayer
+        };
     };
 
 
@@ -174,7 +150,10 @@ function Player() {
         if (this.isNeighbourTile(tile)) {
             player[y][x] = { player: currentPlayer, unit: u };
 
-            return '<div class="player p' + currentPlayer + ' unit u' + u + '"></div>';
+            return {
+                playerId : currentPlayer,
+                unitId   : u
+            };
         }
         else {
             throw(errorCodes.noNeighbourTile);

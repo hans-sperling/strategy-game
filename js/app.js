@@ -19,6 +19,7 @@ $(document).ready(function() {
         { x: 2, y: 5 },
         { x: 5, y: 1 }
     ];                // Stores the coordinates of the base of all players
+    var i, result;
 
     // -----------------------------------------------------------------------------------------------------------------
     // Helpers
@@ -67,6 +68,7 @@ $(document).ready(function() {
         return x !== null && y !== null
     }
 
+
     // -----------------------------------------------------------------------------------------------------------------
     // Initial rendering
 
@@ -74,16 +76,20 @@ $(document).ready(function() {
     $DOM_World.html(world.newWorld(worldMap));
 
     // Set and render player and their bases
-    $('#x-' + bases[0].x + '-y-' + bases[0].y).html(player.newPlayer(bases[0]));
-    $('#x-' + bases[1].x + '-y-' + bases[1].y).html(player.newPlayer(bases[1]));
+    for (i = 0; i < bases.length; i++) {
+        result = player.newPlayer(bases[i]);
+
+        $('#x-' + bases[i].x + '-y-' + bases[i].y).html('<div class="player p' + result.id + ' base"></div>');
+    }
+
 
     // -----------------------------------------------------------------------------------------------------------------
     // Game logic - conditions
 
     // On click of any tile
     $DOM_World.on('click.tileClick', '.tile', function() {
-        var x    = this.id.split('-')[1],
-            y    = this.id.split('-')[3];
+        var x    = Number(this.id.split('-')[1]),
+            y    = Number(this.id.split('-')[3]);
 
         // Stores the currently clicked tile coordinates
         tile  = { x: x, y: y };
@@ -157,7 +163,9 @@ $(document).ready(function() {
             // Set unit first time or select chosen tile
             if (world.isFreeWorldTile(tile) && !player.isOccupiedTile(tile)) {
                 try {
-                    $tile.html(player.newUnit(tile, 1));
+                    result = player.newUnit(tile, 1);
+                    $tile.html('<div class="player p' + result.playerId + ' unit u' + result.unitId + '"></div>');
+
 
                     player.nextPlayer();
                 }
