@@ -108,7 +108,8 @@ $(document).ready(function() {
                 // Upgrade selected unit
                 if (isEqualTile(selectedTile, tile)) {
                     try {
-                        $tile.html(player.upgradeUnit(tile));
+                        result = player.upgradeUnit(tile);
+                        $tile.html('<div class="player p' + result.playerId + ' unit u' + result.unitId + '"></div>');
                         player.nextPlayer();
                     }
                     catch (e) {
@@ -122,7 +123,6 @@ $(document).ready(function() {
             }
             // move selected unit to a free world tile
             else if (world.isFreeWorldTile(tile) && !player.isOccupiedTile(tile)) {
-
                 try {
                     player.moveUnit(selectedTile, tile);
                     $tile.html($tileSelect.html());
@@ -140,11 +140,24 @@ $(document).ready(function() {
                 try {
                     // Player has won
                     if (player.attack(selectedTile, tile)) {
-                        $tile.html(player.downgradeUnit(tile));
+                        result = player.downgradeUnit(tile);
+
+                        if (result) {
+                            $tile.html('<div class="player p' + result.playerId + ' unit u' + result.unitId + '"></div>');
+                        }
+                        else {
+                            $tile.html('');
+                        }
                     }
                     else { // Enemy has won
-                        console.log('Enemy has won');
-                        $tileSelect.html(player.downgradeUnit(selectedTile, false));
+                        result = player.downgradeUnit(selectedTile, false);
+
+                        if (result) {
+                            $selectedTile.html('<div class="player p' + result.playerId + ' unit u' + result.unitId + '"></div>');
+                        }
+                        else {
+                            $selectedTile.html('');
+                        }
                     }
 
                     player.nextPlayer();
@@ -165,20 +178,18 @@ $(document).ready(function() {
                 try {
                     result = player.newUnit(tile, 1);
                     $tile.html('<div class="player p' + result.playerId + ' unit u' + result.unitId + '"></div>');
-
-
                     player.nextPlayer();
                 }
                 catch(e) {
                     console.log('You can not set a new unit here! - ' + e.message);
                 }
-                resetSelectedTile(); // No necessary here
+                resetSelectedTile(); // Not necessary here!
             }
             else if (player.isOwnTile(tile)) { // If the chosen tile is set by the current player itself
                 setSelectedTile(x, y);
             }
             else {
-                resetSelectedTile(); // No necessary here
+                resetSelectedTile(); // Not necessary here!
             }
         }
     });

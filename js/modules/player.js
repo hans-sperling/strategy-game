@@ -16,7 +16,7 @@ function Player() {
         noNeighbourTile        : { id : 3, message : 'Not a neighbour tile.' },
         noEnemyTile            : { id : 4, message : 'Not an enemy tile.'}
     }; // List of error objects with messages
-    var maxPlayer     = 0;     // Amount of maximum players of this game
+    var maxPlayer     = 0;     // Amount of maximum players of this game - Will be increment by adding a new player
     var maxUnit       = 4;     // Amount of maximum upgrading unit size of any player
     var currentPlayer = 1;     // Id of the current player / starting player
 
@@ -137,15 +137,12 @@ function Player() {
      *
      * @param   {object} tile - Tile the unit has to set to
      * @param   {number} u    - Amount / Id / strength of the unit
-     * @returns {string|boolean} Returns a valid markup string for the tile
+     * @returns {{playerId, unitId}} Returns an object of playerId and unitId
      * @throws  {error} Throws an error object if there are not any direct neighbour tiles of the current player
      */
     this.newUnit = function newUnit(tile, u) {
-        var x, y;
-
-        tile = validateTile(tile);
-        x    = tile.x;
-        y    = tile.y;
+        var x = tile.x,
+            y = tile.y;
 
         if (this.isNeighbourTile(tile)) {
             player[y][x] = { player: currentPlayer, unit: u };
@@ -165,15 +162,14 @@ function Player() {
      * Increments the existing unit-size at the given tile of the current player and returns the valid markup of the tile.
      *
      * @param   {object} tile - Tile of the current players unit
-     * @returns {string} Returns a valid markup string for the tile or an empty one if the unit can not be upgraded
-     * @throws  {object} Will throw an error object if the unit can not be upgraded
+     * @returns {{playerId, unitId}} Returns an object of playerId and unitId
+     * @throws  {error} Throws an error object if the units maximum level has been reached
+     * @throws  {error} Throws an error object if the given tile is not occupied by the current player
      */
     this.upgradeUnit = function upgradeUnit(tile) {
-        var x, y, currentUnit;
-
-        tile = validateTile(tile);
-        x    = tile.x;
-        y    = tile.y;
+        var x = tile.x,
+            y = tile.y,
+            currentUnit;
 
         if (this.isOwnTile(tile)) {
             currentUnit = player[y][x].unit;
@@ -181,7 +177,10 @@ function Player() {
                 currentUnit++;
                 player[y][x] = { player: currentPlayer, unit: currentUnit };
 
-                return '<div class="player p' + currentPlayer + ' unit u' + currentUnit + '"></div>';
+                return {
+                    playerId : currentPlayer,
+                    unitId   : currentUnit
+                };
             }
             else {
                 throw new ErrorException(errorCodes.upgradeMaxLevelReached);
@@ -190,7 +189,6 @@ function Player() {
         else {
             throw new ErrorException(errorCodes.isNotOwnTile);
         }
-
     };
 
 
@@ -199,27 +197,28 @@ function Player() {
      *
      * @param   {object}  tile - Tile of the current players unit
      * @param   {boolean|undefined} mustBeCurrentPlayer - If you does not want to check if the tile is the one the current player - Default is true
-     * @returns {string} Returns a valid markup string for the tile
-     * @throws  {object} Will throw an error object if the chosen tile is not a tile of the current player
+     * @returns {{playerId, unitId}} Returns an object of playerId and unitId
+     * @throws  {error} Throws an error object if the given tile is not occupied by the current player
      */
     this.downgradeUnit = function downgradeUnit(tile, mustBeCurrentPlayer) {
         var isCurrentPlayer = mustBeCurrentPlayer === undefined,
-            x, y, currentUnit,
-
-        tile = validateTile(tile);
-        x    = tile.x;
-        y    = tile.y;
+            x = tile.x,
+            y = tile.y,
+            currentUnit;
 
         if (isCurrentPlayer || this.isOwnTile(tile)) {
             currentUnit = player[y][x].unit;
             if (currentUnit > 1) {
                 currentUnit--;
                 player[y][x].unit = currentUnit;
-                return '<div class="player p' + player[y][x].player + ' unit u' + currentUnit + '"></div>';
+
+                return {
+                    playerId : player[y][x].player,
+                    unitId   : currentUnit
+                };
             }
             else {
-                player[y][x] = null;
-                return '';
+                return null;
             }
         }
         else {
@@ -231,18 +230,16 @@ function Player() {
     /**
      * Moves the data from startTile to targetTile.
      *
-     * @param   {object}  startTile  - Source-Tile of the current object on this tile
-     * @param   {object}  targetTile - Target-Tile the source-tile object has to moved to
+     * @param   {object} startTile  - Source-Tile of the current object on this tile
+     * @param   {object} targetTile - Target-Tile the source-tile object has to moved to
+     * @throws  {error}  Throws an error object if there are not any direct neighbour tiles of the current player
+     * @throws  {error}  Throws an error object if the given tile is not occupied by the current player
      */
     this.moveUnit = function moveUnit(startTile, targetTile) {
-        var sx, sy, tx, ty;
-
-        startTile  = validateTile(startTile);
-        targetTile = validateTile(targetTile);
-        sx         = startTile.x;
-        sy         = startTile.y;
-        tx         = targetTile.x;
-        ty         = targetTile.y;
+        var sx = startTile.x,
+            sy = startTile.y,
+            tx = targetTile.x,
+            ty = targetTile.y;
 
         if (this.isOwnTile(startTile)) {
             if (this.isNeighbourTile(targetTile)) {
@@ -264,16 +261,17 @@ function Player() {
      * @param   {object}  playerTile - Tile of the current player
      * @param   {object}  enemyTile  - Tile of the enemy
      * @returns {boolean} Returns true if the current player decides the battle for itself.
+     * @throws  {error} Throws an error object if the given enemy tile is not occupied by an enemy
+     * @throws  {error} Throws an error object if there are not any direct neighbour tiles of the current player
+     * @throws  {error} Throws an error object if the given tile is not occupied by the current player
      */
     this.attack = function attack (playerTile, enemyTile) {
-        var px, py, ex, ey, unitPlayer, unitEnemy, mergedUnitAmount, random;
+        var px = playerTile.x,
+            py = playerTile.y,
+            ex = enemyTile.x,
+            ey = enemyTile.y,
+            unitPlayer, unitEnemy, mergedUnitAmount, random;
 
-        playerTile = validateTile(playerTile);
-        enemyTile  = validateTile(enemyTile);
-        px         = playerTile.x;
-        py         = playerTile.y;
-        ex         = enemyTile.x;
-        ey         = enemyTile.y;
 
         if (this.isOwnTile(playerTile)) {
             if (this.isNeighbourTile(enemyTile)) {
